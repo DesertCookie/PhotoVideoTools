@@ -1,0 +1,74 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.javamodularity.moduleplugin' version '1.8.12'
+    id 'org.openjfx.javafxplugin' version '0.0.13'
+    id 'org.beryx.jlink' version '2.25.0'
+}
+
+group 'de.rubenhahn'
+version '0.1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    junitVersion = '5.9.2'
+}
+
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+application {
+    mainModule = 'de.rubenhahn.photovideotools'
+    mainClass = 'de.rubenhahn.photovideotools.HelloApplication'
+}
+
+javafx {
+    version = '17.0.6'
+    modules = ['javafx.controls', 'javafx.fxml']
+}
+
+dependencies {
+    implementation 'com.twelvemonkeys.imageio:imageio-core:3.9.4'
+    implementation 'com.twelvemonkeys.imageio:imageio-jpeg:3.9.4'
+    implementation 'com.twelvemonkeys.imageio:imageio-tiff:3.9.4'
+
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+}
+
+test {
+    useJUnitPlatform()
+}
+
+jlink {
+    imageZip = project.file("${buildDir}/distributions/${javafx.platform.classifier}.zip")
+    options = ['--strip-debug', '--compress', '2', '--no-header-files', '--no-man-pages']
+    launcher {
+        name = 'Photo Video Tools'
+    }
+}
+
+tasks.jlink.doLast {
+    copy {
+        from("/") {
+            include "README.md", "LICENSE"
+        }
+        into buildDir
+    }
+    copy {
+        includeEmptyDirs = false
+        from("/libs")
+        into buildDir + "/libs"
+    }
+}
+
+jlinkZip {
+    group = 'distribution'
+}
